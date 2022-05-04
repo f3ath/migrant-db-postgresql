@@ -1,2 +1,1 @@
-# migrant-db-postgresql
-PostgreSQL gateway for migrant.
+PostgreSQL gateway for [migrant](https://pub.dev/packages/migrant).
