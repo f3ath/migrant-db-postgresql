@@ -1,0 +1,46 @@
+name: Dart CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:14.2
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - name: Print Dart version
+        run: dart --version
+      - name: Install dependencies
+        run: dart pub get
+      - name: Formatter
+        run: dart format --output none --set-exit-if-changed example lib test
+      - name: Analyzer
+        run: dart analyze --fatal-infos --fatal-warnings
+      - name: Tests
+        run: dart test --coverage=coverage
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          PG_HOST: postgres
+      - name: Coverage
+        run: dart run coverage:format_coverage -l -c -i coverage --report-on=lib --packages=.packages | dart run check_coverage:check_coverage

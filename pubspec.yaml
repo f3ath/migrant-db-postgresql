@@ -1,0 +1,22 @@
+name: migrant_db_postgresql
+version: 0.0.1
+description: PostgreSQL gateway for Migrant
+homepage: "https://github.com/f3ath/migrant-db-postgresql"
+
+environment:
+  sdk: '>=2.16.0 <3.0.0'
+
+dependencies:
+  migrant: ^0.0.5
+  postgres: ^2.4.3
+
+dev_dependencies:
+  lints: ^1.0.1
+  test: ^1.20.1
+  check_coverage: ^0.0.4
+  cider: ^0.1.0
+
+cider:
+  link_template:
+    tag: https://github.com/f3ath/migrant-db-postgresql/releases/tag/%tag%
+    diff: https://github.com/f3ath/migrant-db-postgresql/compare/%from%...%to%
