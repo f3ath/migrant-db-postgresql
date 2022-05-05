@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:migrant/migrant.dart';
 import 'package:migrant/testing.dart';
 import 'package:migrant_db_postgresql/migrant_db_postgresql.dart';
@@ -59,9 +61,12 @@ void main() {
   });
 }
 
-PostgreSQLConnection _createConnection() => PostgreSQLConnection(
-    String.fromEnvironment('PG_HOST', defaultValue: 'localhost'),
-    int.fromEnvironment('PG_PORT', defaultValue: 5432),
-    String.fromEnvironment('PG_DB', defaultValue: 'postgres'),
-    username: String.fromEnvironment('PG_USER', defaultValue: 'postgres'),
-    password: String.fromEnvironment('PG_PWD', defaultValue: 'postgres'));
+PostgreSQLConnection _createConnection() {
+  final env = Platform.environment;
+  return PostgreSQLConnection(
+      env['PG_HOST'] ?? 'localhost',
+      int.fromEnvironment('PG_PORT', defaultValue: 5432),
+      env['PG_DATABASE'] ?? 'postgres',
+      username: env['PG_USER'] ?? 'postgres',
+      password: env['PG_PASSWORD'] ?? 'postgres');
+}
