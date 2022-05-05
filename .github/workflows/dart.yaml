@@ -9,7 +9,7 @@ jobs:
   container-job:
     runs-on: ubuntu-latest
     container:
-      image: google/dart:stable
+      image: dart:latest
 
     services:
       # Label used to access the service container
