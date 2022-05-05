@@ -30,9 +30,6 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: stable
       - name: Print Dart version
         run: dart --version
       - name: Install dependencies
