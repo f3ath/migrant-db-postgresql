@@ -19,23 +19,19 @@ void main() {
     final gateway = PostgreSQLGateway(connection);
     await connection.open();
     await gateway.dropMigrations();
-    await connection.transaction((ctx) async {
-      await ctx.query("drop table if exists test");
-    });
+    await connection.execute("drop table if exists test");
     final db = Database(gateway);
     await db.migrate(source);
     expect(await gateway.currentVersion(), equals('02'));
     await db.migrate(source); // idempotency
     expect(await gateway.currentVersion(), equals('02'));
-    await connection.transaction((ctx) async {
-      await ctx.query(
-          "insert into test (id, foo, bar) values (@id, @foo, @bar)",
-          substitutionValues: {
-            'id': '0000',
-            'foo': 'hello',
-            'bar': 'world',
-          });
-    });
+    await connection.query(
+        "insert into test (id, foo, bar) values (@id, @foo, @bar)",
+        substitutionValues: {
+          'id': '0000',
+          'foo': 'hello',
+          'bar': 'world',
+        });
     final result = await connection.query('select * from test');
     expect(
         result,
@@ -50,9 +46,7 @@ void main() {
     final gateway = PostgreSQLGateway(connection);
     await connection.open();
     await gateway.dropMigrations();
-    await connection.transaction((ctx) async {
-      await ctx.query("drop table if exists test");
-    });
+    await connection.execute("drop table if exists test");
     final db = Database(gateway);
     expect(() => db.migrate(AsIs([Migration('00', 'drop table not_exists;')])),
         throwsA(isA<PostgreSQLException>()));

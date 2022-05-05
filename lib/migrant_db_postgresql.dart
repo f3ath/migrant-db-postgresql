@@ -29,13 +29,13 @@ class PostgreSQLGateway implements DatabaseGateway {
           substitutionValues: {
             'version': migration.version,
           });
-      await ctx.query(migration.statement);
+      await ctx.execute(migration.statement);
     });
   }
 
   /// Drops the migrations table.
-  Future<void> dropMigrations() => _db.query('drop table if exists $_table');
+  Future<void> dropMigrations() => _db.execute('drop table if exists $_table');
 
-  Future<void> _init() => _db.query(
+  Future<void> _init() => _db.execute(
       'create table if not exists $_table (version text primary key, created_at timestamp not null);');
 }
