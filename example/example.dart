@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:migrant/migrant.dart';
 import 'package:migrant/testing.dart';
 import 'package:migrant_db_postgresql/migrant_db_postgresql.dart';
