@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  buld:
+  build:
     runs-on: ubuntu-latest
     container:
       image: dart:latest
