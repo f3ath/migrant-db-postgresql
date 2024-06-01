@@ -21,4 +21,4 @@ doc/api/
 *.js.map
 
 # code coverage
-/coverage
+.coverage
