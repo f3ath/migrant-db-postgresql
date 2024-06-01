@@ -39,7 +39,7 @@ jobs:
       - name: Analyzer
         run: dart analyze --fatal-infos --fatal-warnings
       - name: Tests
-        run: dart test --coverage=coverage
+        run: dart test --coverage=.coverage
         env:
           # The hostname used to communicate with the PostgreSQL service container
           PG_HOST: postgres
