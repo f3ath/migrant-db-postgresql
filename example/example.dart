@@ -16,11 +16,12 @@ Future<void> main() async {
   // The postgres connection. To make it work, you need an actual server.
   // Try it with Docker:
   // docker run -d -p 5432:5432 --name my-postgres -e POSTGRES_PASSWORD=postgres postgres
-  final connection = PostgreSQLConnection('localhost', 5432, 'postgres',
-      username: 'postgres', password: 'postgres');
-
-  // The connection needs to be open before we do anything.
-  await connection.open();
+  final connection = await Connection.open(Endpoint(
+    host: 'localhost',
+    database: 'postgres',
+    username: 'postgres',
+    password: 'postgres',
+  ));
 
   // The gateway is provided by this package.
   final gateway = PostgreSQLGateway(connection);

@@ -9,24 +9,25 @@ class PostgreSQLGateway implements DatabaseGateway {
   /// Internal version.
   static const _version = '1';
 
-  final PostgreSQLConnection _db;
+  final Connection _db;
   final String _table;
 
   @override
   Future<String?> currentVersion() async {
     await _init();
-    final result = await _db.query('select max(version) from $_table');
+    final result = await _db.execute('select max(version) from $_table');
     if (result.isEmpty) return null;
-    return result.first.first;
+    return result.first.first as String?;
   }
 
   @override
   Future<void> apply(Migration migration) async {
     await _init();
-    await _db.transaction((ctx) async {
-      await ctx.query(
-          'insert into $_table (version, created_at) values (@version, now());',
-          substitutionValues: {
+    await _db.runTx((ctx) async {
+      await ctx.execute(
+          Sql.named(
+              'insert into $_table (version, created_at) values (@version, now());'),
+          parameters: {
             'version': migration.version,
           });
       await ctx.execute(migration.statement);
