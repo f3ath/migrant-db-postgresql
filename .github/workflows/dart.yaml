@@ -44,4 +44,4 @@ jobs:
           # The hostname used to communicate with the PostgreSQL service container
           PG_HOST: postgres
       - name: Coverage
-        run: dart run coverage:format_coverage -l -c -i coverage --report-on=lib --packages=.packages | dart run check_coverage:check_coverage
+        run: dart run coverage:format_coverage -l -c -i .coverage --report-on=lib --packages=.dart_tool/package_config.json | dart run check_coverage:check_coverage
