@@ -16,10 +16,9 @@ void main() {
       '01': 'alter table test add column foo text;',
       '02': 'alter table test add column bar text;'
     });
-    final connection = _createConnection();
+    final connection = await _createConnection();
 
     final gateway = PostgreSQLGateway(connection);
-    await connection.open();
     await gateway.dropMigrations();
     await connection.execute("drop table if exists test");
     final db = Database(gateway);
@@ -27,14 +26,14 @@ void main() {
     expect(await gateway.currentVersion(), equals('02'));
     await db.migrate(source); // idempotency
     expect(await gateway.currentVersion(), equals('02'));
-    await connection.query(
-        "insert into test (id, foo, bar) values (@id, @foo, @bar)",
-        substitutionValues: {
+    await connection.execute(
+        Sql.named('insert into test (id, foo, bar) values (@id, @foo, @bar)'),
+        parameters: {
           'id': '0000',
           'foo': 'hello',
           'bar': 'world',
         });
-    final result = await connection.query('select * from test');
+    final result = await connection.execute('select * from test');
     expect(
         result,
         equals([
@@ -43,30 +42,32 @@ void main() {
   });
 
   test('Invalid migrations', () async {
-    final connection = _createConnection();
+    final connection = await _createConnection();
 
     final gateway = PostgreSQLGateway(connection);
-    await connection.open();
     await gateway.dropMigrations();
     await connection.execute("drop table if exists test");
     final db = Database(gateway);
     expect(() => db.migrate(AsIs([Migration('00', 'drop table not_exists;')])),
-        throwsA(isA<PostgreSQLException>()));
+        throwsA(isA<PgException>()));
     expect(await gateway.currentVersion(), isNull);
     await db.migrate(AsIs([Migration('00', 'create table test (id text);')]));
     expect(await gateway.currentVersion(), equals('00'));
     expect(() => db.migrate(AsIs([Migration('01', 'drop table not_exists;')])),
-        throwsA(isA<PostgreSQLException>()));
+        throwsA(isA<PgException>()));
     expect(await gateway.currentVersion(), equals('00'));
   });
 }
 
-PostgreSQLConnection _createConnection() {
+Future<Connection> _createConnection() {
   final env = Platform.environment;
-  return PostgreSQLConnection(
-      env['PG_HOST'] ?? 'localhost',
-      int.fromEnvironment('PG_PORT', defaultValue: 5432),
-      env['PG_DATABASE'] ?? 'postgres',
-      username: env['PG_USER'] ?? 'postgres',
-      password: env['PG_PASSWORD'] ?? 'postgres');
+  return Connection.open(
+      Endpoint(
+        host: env['PG_HOST'] ?? 'localhost',
+        port: int.fromEnvironment('PG_PORT', defaultValue: 5432),
+        database: env['PG_DATABASE'] ?? 'postgres',
+        username: env['PG_USER'] ?? 'postgres',
+        password: env['PG_PASSWORD'] ?? 'postgres',
+      ),
+      settings: ConnectionSettings(sslMode: SslMode.disable));
 }
