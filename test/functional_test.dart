@@ -171,6 +171,11 @@ void main() {
       expect(await gateway.currentVersion(), equals('2'));
     });
   });
+
+  test('RaceCondition toString', () {
+    final rc = RaceCondition('Foo');
+    expect(rc.toString(), equals('Foo'));
+  });
 }
 
 Future<Connection> _createConnection() {

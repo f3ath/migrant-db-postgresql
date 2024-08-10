@@ -5,8 +5,8 @@ class PostgreSQLGateway implements DatabaseGateway {
   PostgreSQLGateway(this._db,
       {String schema = 'public', String tablePrefix = '_migrations'})
       : _table = '$schema.${tablePrefix}_v$_version' {
-    _insertVersion = Sql.named(
-        'insert into $_table (version, created_at) values (@version, now());');
+    _insertVersion = Sql.named('insert into $_table (version, created_at)'
+        'values (@version, now())');
   }
 
   /// Internal version.
@@ -60,8 +60,10 @@ class PostgreSQLGateway implements DatabaseGateway {
         'version': version,
       });
 
-  Future<Result> _init() => _db.execute(
-      'create table if not exists $_table (version text primary key, created_at timestamp not null);');
+  Future<Result> _init() => _db.execute('create table if not exists $_table ('
+      'version text primary key, '
+      'created_at timestamp not null'
+      ')');
 
   /// Returns the applied versions, ascending.
   Future<List<String>> _history(TxSession session) async {
