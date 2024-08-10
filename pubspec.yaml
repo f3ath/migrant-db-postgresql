@@ -1,18 +1,19 @@
 name: migrant_db_postgresql
-version: 0.1.0
+version: 0.2.0
 description: PostgreSQL gateway for Migrant
 homepage: "https://github.com/f3ath/migrant-db-postgresql"
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
-  migrant: ^0.0.7
+  migrant: ^0.3.0
   postgres: ^3.2.1
 
 dev_dependencies:
   lints: ^4.0.0
   test: ^1.20.1
+  coverage: ^1.9.0
   check_coverage: ^0.0.4
   cider: ^0.2.7
 
