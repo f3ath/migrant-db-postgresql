@@ -55,10 +55,6 @@ class PostgreSQLGateway implements DatabaseGateway {
     return result.isEmpty ? null : result.first.first as String?;
   }
 
-  /// Drops the migrations table.
-  Future<Result> dropMigrations() =>
-      _db.execute('drop table if exists $_table');
-
   Future<Result> _register(String version, TxSession session) =>
       session.execute(_insertVersion, parameters: {
         'version': version,
