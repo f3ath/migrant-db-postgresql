@@ -15,7 +15,7 @@ jobs:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: postgres:14.2
+        image: postgres:latest
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -39,7 +39,7 @@ jobs:
       - name: Analyzer
         run: dart analyze --fatal-infos --fatal-warnings
       - name: Tests
-        run: dart test --coverage=.coverage
+        run: dart test -j 1 --coverage=.coverage --
         env:
           # The hostname used to communicate with the PostgreSQL service container
           PG_HOST: postgres
