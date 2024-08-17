@@ -17,8 +17,8 @@ void main() {
 
     setUp(() async {
       connection = await _createConnection();
-      await connection.execute('DROP SCHEMA public CASCADE;');
-      await connection.execute('CREATE SCHEMA public;');
+      await connection.execute('DROP SCHEMA IF EXISTS public CASCADE;');
+      await connection.execute('CREATE SCHEMA IF NOT EXISTS public;');
       gateway = PostgreSQLGateway(connection);
       db = Database(gateway);
     });
