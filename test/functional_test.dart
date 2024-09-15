@@ -132,7 +132,7 @@ void main() {
           () => gateway
               .initialize(Migration('0', ['create table bar (id text);'])),
           throwsA(isA<RaceCondition>().having((it) => it.message, 'message',
-              equals('DB already initialized at version 1'))));
+              equals('Expected version null but got 1'))));
 
       expect(await gateway.currentVersion(), equals('1'));
     });
@@ -143,8 +143,8 @@ void main() {
       await expectLater(
           () => gateway.upgrade(
               '0', Migration('2', ['create table bar (id text);'])),
-          throwsA(isA<RaceCondition>().having(
-              (it) => it.message, 'message', equals('DB not at version 0'))));
+          throwsA(isA<RaceCondition>().having((it) => it.message, 'message',
+              equals('Expected version 0 but got 1'))));
 
       expect(await gateway.currentVersion(), equals('1'));
     });

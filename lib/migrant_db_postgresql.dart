@@ -52,7 +52,8 @@ class PostgreSQLGateway implements DatabaseGateway {
         }
         final maxVersion = await _currentVersion(ctx);
         if (maxVersion != expectedVersion) {
-          throw RaceCondition('DB not at version $expectedVersion');
+          throw RaceCondition(
+              'Expected version $expectedVersion but got $maxVersion');
         }
         await ctx.execute(_insertVersion, parameters: {
           'version': migration.version,
