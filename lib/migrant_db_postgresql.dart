@@ -3,77 +3,81 @@ import 'package:postgres/postgres.dart';
 
 class PostgreSQLGateway implements DatabaseGateway {
   PostgreSQLGateway(this._db,
-      {String schema = 'public', String tablePrefix = '_migrations'})
-      : _table = '$schema.${tablePrefix}_v$_version' {
-    _insertVersion = Sql.named('insert into $_table (version, created_at)'
-        'values (@version, now())');
-  }
-
-  /// Internal version.
-  static const _version = 1;
+      {String schema = 'public', String table = 'schema_version'})
+      : _insertVersion = Sql.named(
+            'INSERT INTO "$schema"."$table" (version, applied_at) VALUES (@version, now())'),
+        _lockTable =
+            Sql.named('LOCK TABLE "$schema"."$table" IN EXCLUSIVE MODE NOWAIT'),
+        _createTable = Sql.named(
+            'CREATE TABLE IF NOT EXISTS "$schema"."$table" (version text PRIMARY KEY COLLATE "C", applied_at timestamp NOT NULL)'),
+        _selectMaxVersion = Sql.named(
+            'SELECT version FROM "$schema"."$table" ORDER BY version  DESC LIMIT 1'),
+        _tryLock =
+            Sql.named('SELECT pg_try_advisory_xact_lock(hashtext(@text))');
 
   final Connection _db;
-  final String _table;
-  late final Sql _insertVersion;
+  final Sql _insertVersion,
+      _lockTable,
+      _createTable,
+      _selectMaxVersion,
+      _tryLock;
 
   @override
   Future<void> initialize(Migration migration) async {
-    await _init();
     await _db.runTx((ctx) async {
-      for (final statement in migration.statements) {
-        await ctx.execute(statement);
+      final locked = await ctx.execute(_tryLock, parameters: {
+        'text': 'migrant_db_postgresql',
+      }).then((r) => r.first.first as bool);
+      if (!locked) {
+        throw RaceCondition('DB already initialized');
       }
-      await _register(migration.version, ctx);
-      final history = await _history(ctx);
-      if (history.length != 1 || history.first != migration.version) {
-        throw RaceCondition('Unexpected history: $history');
-      }
+      await ctx.execute(_createTable);
     });
+    return await _apply(migration, null);
   }
 
   @override
-  Future<void> upgrade(String version, Migration migration) async {
-    await _init();
-    await _db.runTx((ctx) async {
-      for (final statement in migration.statements) {
-        await ctx.execute(statement);
-      }
-      await _register(migration.version, ctx);
-      final history = await _history(ctx);
-      if (history.length < 2 ||
-          history.last != migration.version ||
-          history[history.length - 2] != version) {
-        throw RaceCondition('Unexpected history: $history');
-      }
-    });
-  }
+  Future<void> upgrade(String version, Migration migration) =>
+      _apply(migration, version);
 
-  @override
-  Future<String?> currentVersion() async {
-    await _init();
-    final result = await _db.execute('select max(version) from $_table');
-    return result.isEmpty ? null : result.first.first as String?;
-  }
-
-  Future<Result> _register(String version, TxSession session) =>
-      session.execute(_insertVersion, parameters: {
-        'version': version,
+  Future<void> _apply(Migration migration, String? expectedVersion) =>
+      _db.runTx((ctx) async {
+        try {
+          await ctx.execute(_lockTable);
+        } on ServerException catch (e) {
+          if (e.code == _lockNotAvailable) {
+            throw RaceCondition('Another process is running');
+          }
+          rethrow;
+        }
+        final maxVersion = await _currentVersion(ctx);
+        if (maxVersion != expectedVersion) {
+          throw RaceCondition('DB not at version $expectedVersion');
+        }
+        await ctx.execute(_insertVersion, parameters: {
+          'version': migration.version,
+        });
+        for (final statement in migration.statements) {
+          await ctx.execute(statement);
+        }
       });
 
-  Future<Result> _init() => _db.execute('create table if not exists $_table ('
-      'version text primary key, '
-      'created_at timestamp not null'
-      ')');
+  @override
+  Future<String?> currentVersion() => _currentVersion(_db);
 
-  /// Returns the applied versions, ascending.
-  Future<List<String>> _history(TxSession session) async {
-    final result = await session
-        .execute('select version from $_table order by version asc');
-    return result.map((row) => row.first as String).toList();
+  Future<String?> _currentVersion(Session session) async {
+    try {
+      return await session
+          .execute(_selectMaxVersion)
+          .then((r) => r.isEmpty ? null : r.first.first) as String?;
+    } on ServerException catch (e) {
+      if (e.code == _undefinedTable) return null;
+      rethrow;
+    }
   }
 }
 
-/// Thrown when the gateway detects a race condition during migration.
+/// Thrown when a race condition is detected.
 class RaceCondition implements Exception {
   const RaceCondition(this.message);
 
@@ -82,3 +86,6 @@ class RaceCondition implements Exception {
   @override
   String toString() => message;
 }
+
+const _undefinedTable = '42P01';
+const _lockNotAvailable = '55P03';
