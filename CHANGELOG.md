@@ -1,3 +1,8 @@
+## [0.3.0] - 2024-09-14
+### Changed
+- Table naming
+- Locking approach
+
 ## [0.2.1] - 2024-08-16
 ### Added
 - Concurrency test
@@ -26,6 +31,7 @@
 ### Added
 - Initial version
 
+[0.3.0]: https://github.com/f3ath/migrant-db-postgresql/compare/0.2.1...0.3.0
 [0.2.1]: https://github.com/f3ath/migrant-db-postgresql/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/f3ath/migrant-db-postgresql/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/f3ath/migrant-db-postgresql/compare/0.0.4...0.1.0

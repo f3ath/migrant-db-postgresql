@@ -1,5 +1,5 @@
 name: migrant_db_postgresql
-version: 0.2.1
+version: 0.3.0
 description: PostgreSQL gateway for Migrant
 homepage: "https://github.com/f3ath/migrant-db-postgresql"
 

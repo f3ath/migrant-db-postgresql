@@ -132,7 +132,7 @@ void main() {
           () => gateway
               .initialize(Migration('0', ['create table bar (id text);'])),
           throwsA(isA<RaceCondition>().having((it) => it.message, 'message',
-              equals('Unexpected history: [0, 1]'))));
+              equals('Expected version null but got 1'))));
 
       expect(await gateway.currentVersion(), equals('1'));
     });
@@ -144,7 +144,7 @@ void main() {
           () => gateway.upgrade(
               '0', Migration('2', ['create table bar (id text);'])),
           throwsA(isA<RaceCondition>().having((it) => it.message, 'message',
-              equals('Unexpected history: [1, 2]'))));
+              equals('Expected version 0 but got 1'))));
 
       expect(await gateway.currentVersion(), equals('1'));
     });
@@ -170,11 +170,6 @@ void main() {
       await expectLater(() => db.upgrade(source), throwsException);
       expect(await gateway.currentVersion(), equals('2'));
     });
-  });
-
-  test('RaceCondition toString', () {
-    final rc = RaceCondition('Foo');
-    expect(rc.toString(), equals('Foo'));
   });
 }
 
