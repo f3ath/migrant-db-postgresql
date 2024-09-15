@@ -83,9 +83,6 @@ class RaceCondition implements Exception {
   const RaceCondition(this.message);
 
   final String message;
-
-  @override
-  String toString() => message;
 }
 
 const _undefinedTable = '42P01';
